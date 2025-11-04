@@ -1,3 +1,5 @@
+# .github/workflows/ci.yml
+
 name: MLflow CI - MARGOHAN
 
 on:
@@ -8,12 +10,8 @@ on:
 
 jobs:
   build:
-    
+    # Menggunakan runner Ubuntu standar
     runs-on: ubuntu-latest
-    
-    # Environment variables untuk MLflow (opsional, tapi disarankan)
-    # env:
-    #   MLFLOW_TRACKING_URI: file:./MLProject/mlruns 
 
     steps:
     # -----------------------------
@@ -23,45 +21,39 @@ jobs:
       uses: actions/checkout@v3
 
     # -----------------------------
-    # Setup Conda (untuk menjalankan MLflow Project)
+    # Setup Python 
     # -----------------------------
-    - name: Setup Conda Environment
-      uses: conda-incubator/setup-miniconda@v3
+    - name: Setup Python
+      uses: actions/setup-python@v5
       with:
-        activate-environment: margohan_env # Nama environment dari conda.yaml
-        environment-file: MLProject/conda.yaml # Jalur ke conda.yaml
-        python-version: 3.10
-        auto-activate-base: false
+        python-version: '3.10'
 
     # -----------------------------
-    # Install dependencies
+    # Install dependencies (Menggunakan requirements.txt)
     # -----------------------------
-    - name: Install MLflow CLI (jika belum ada)
-      shell: bash
+    - name: Install dependencies
       run: |
-        # Pastikan mlflow terinstal di environment yang aktif
-        conda install -c conda-forge mlflow -y 
-        # Atau jika menggunakan pip (tapi conda lebih disarankan untuk MLflow Project)
-        # pip install mlflow==2.19.0
+        python -m pip install --upgrade pip
+        # Pastikan requirements.txt sudah bebas dari pywin32
+        pip install -r requirements.txt
+        # Tambahkan MLflow eksplisit, meskipun ada di requirements, untuk jaga-jaga
+        pip install mlflow==2.19.0 scikit-learn pandas
 
     # -----------------------------
-    # Menjalankan MLflow Project
+    # Jalankan MLflow Project
     # -----------------------------
     - name: Run MLflow Project
-      shell: bash
       run: |
         cd MLProject
-        # MLflow akan membaca MLProject, menggunakan conda.yaml, dan menjalankan modelling.py
-        # Parameter --env-manager=conda adalah cara untuk ini
-        mlflow run . --env-manager=conda 
+        # Gunakan --env-manager=local karena environment sudah dibuat di langkah sebelumnya
+        mlflow run . --env-manager=local
 
     # -----------------------------
-    # Upload model artifact (SKILLED: Menyimpan artefak ke repositori/Actions)
+    # Upload model artifact
     # -----------------------------
     - name: Upload Model Artifact
       uses: actions/upload-artifact@v4
       with:
         name: trained-model-${{ github.run_id }}
-
         path: MLProject/model_best.pkl
         retention-days: 7

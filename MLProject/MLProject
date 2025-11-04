@@ -1,8 +1,7 @@
+# MLProject/MLProject
 name: margohan_project
-
-conda_env: conda.yaml
 
 entry_points:
   main:
-    
+    # command tetap sama
     command: "python modelling.py"
