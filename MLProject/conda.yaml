@@ -1,11 +1,15 @@
 name: margohan_env
 channels:
-  - conda-forge
   - defaults
 dependencies:
   - python=3.10
   - pip
-  - scikit-learn
-  - pandas
-  - numpy
-  - mlflow
+  - pip:
+      - mlflow==2.19.0
+      - scikit-learn
+      - pandas
+      - numpy
+      - joblib
+      - cloudpickle
+      - pyyaml
+      - sqlalchemy
