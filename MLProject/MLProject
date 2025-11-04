@@ -1,9 +1,8 @@
-name: "MARGOHAN_ML_PROJECT"
-
-conda_env: conda.yaml
+name: margohan_project
 
 entry_points:
   main:
     parameters:
-      data_path: {type: str, default: "dataset_preprocessing/dataset.csv"}
-    command: "python modelling.py --data_path {data_path}"
+      alpha: {type: float, default: 0.5}
+      l1_ratio: {type: float, default: 0.5}
+    command: "python train.py --alpha {alpha} --l1_ratio {l1_ratio}"
