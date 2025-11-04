@@ -45,36 +45,37 @@ jobs:
       run: |
         cd MLProject
         # Menjalankan MLflow Project dan menangkap Run ID dari output
-        # Perintah grep/awk diperbaiki agar lebih andal menangkap RUN ID
         RUN_ID=$(mlflow run . --env-manager=local 2>&1 | grep "Running command" | awk '{print $NF}')
         echo "MLFLOW_RUN_ID=$RUN_ID" >> $GITHUB_ENV
         echo "Telah melatih model dalam run ID: $RUN_ID"
 
     # =================================================================
-    #  DOCKER BUILD DAN PUSH
+    # 🚀 ADVANCE (4 PTS): DOCKER BUILD DAN PUSH
     # =================================================================
     
     # -----------------------------
-    # Docker Hub Login 
+    # Docker Hub Login (Menggunakan Action)
     # -----------------------------
     - name: Docker Login
       uses: docker/login-action@v3
       with:
-        # Menggunakan GitHub Secrets
         registry: docker.io
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
         
     # -----------------------------
-    # Build Docker Image menggunakan MLflow dan Push 
+    # Build Docker Image menggunakan MLflow dan Push (Solusi Final)
     # -----------------------------
     - name: Build and Push Docker Image
+      # Menyuntikkan secrets ke environment variables untuk keandalan ekstra
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       run: |
         # Menggunakan Run ID yang ditangkap dari langkah sebelumnya
         MODEL_URI="runs:/${{ env.MLFLOW_RUN_ID }}/best_model_ci_artifact"
         
-        # Nama Image: ${{ secrets.DOCKER_USERNAME }} akan menjadi "gohandal1"
-        IMAGE_NAME="${{ secrets.DOCKER_USERNAME }}/margohan-credit-model"
+        # Nama Image: ${{ env.DOCKER_USERNAME }} akan menjadi "gohandal1"
+        IMAGE_NAME="${{ env.DOCKER_USERNAME }}/margohan-credit-model"
         IMAGE_TAG="${{ github.sha }}" # Menggunakan SHA Commit sebagai tag unik
         
         echo "Building Docker image ${IMAGE_NAME}:${IMAGE_TAG} dari Model URI: ${MODEL_URI}"
@@ -87,7 +88,7 @@ jobs:
       shell: bash
 
     # -----------------------------
-    # Upload model artifact 
+    # Upload model artifact (Skilled Step - Model PKL)
     # -----------------------------
     - name: Upload Model Artifact
       uses: actions/upload-artifact@v4
