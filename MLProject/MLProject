@@ -3,5 +3,5 @@ name: margohan_project
 
 entry_points:
   main:
-    # command tetap sama
+    
     command: "python modelling.py"

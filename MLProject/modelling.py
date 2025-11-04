@@ -84,5 +84,4 @@ print(f"\n🏆 Model terbaik ({best_model_name}) disimpan sebagai {MODEL_OUTPUT_
 
 if best_model:
     # PENTING: Log model terbaik ke Parent Run (Run ID yang dibuat oleh mlflow run .)
-    # Agar bisa diakses oleh mlflow build-docker
     mlflow.sklearn.log_model(best_model, "best_model_ci_artifact")
