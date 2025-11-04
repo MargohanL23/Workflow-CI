@@ -14,27 +14,30 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    # Setup Miniconda (tanpa environment-file langsung)
     - name: Setup Conda
       uses: conda-incubator/setup-miniconda@v3
       with:
-        activate-environment: margohan_env
-        environment-file: MLProject/conda.yaml
+        auto-activate-base: true
         python-version: 3.10
-        auto-activate-base: false
 
+    # Create environment manually
+    - name: Create margohan_env environment
+      shell: bash -l {0}
+      run: |
+        conda create -n margohan_env python=3.10 -y
+        conda activate margohan_env
+        pip install mlflow==2.19.0 scikit-learn pandas numpy joblib cloudpickle pyyaml sqlalchemy
 
-    - name: Install dependencies (fallback)
+    # Jalankan MLflow Project
+    - name: Run MLflow Project
       shell: bash -l {0}
       run: |
         conda activate margohan_env
-        pip install --upgrade pip setuptools wheel
-        pip install -r requirements.txt || echo "No requirements.txt found"
-
-    - name: Run MLflow Project
-      run: |
         cd MLProject
         mlflow run . --env-manager=local
 
+    # Upload model hasil training
     - name: Upload Model Artifact
       uses: actions/upload-artifact@v4
       with:
