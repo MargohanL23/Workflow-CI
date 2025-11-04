@@ -11,13 +11,6 @@ from sklearn.metrics import accuracy_score, classification_report
 # import shutil 
 
 # ===============================================================
-# 🚀 MLflow Setup
-# ===============================================================
-
-# Kita tetap set experiment, tapi MLflow akan otomatis menggunakan Parent Run ID
-mlflow.set_experiment("MARGOHAN_CI_EXPERIMENT")
-
-# ===============================================================
 # 📥 Load Dataset
 # ===============================================================
 # Pastikan jalur dataset benar relatif terhadap MLProject
