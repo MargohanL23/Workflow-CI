@@ -1,5 +1,3 @@
-# C:\Users\indah\OneDrive\Desktop\workflow-CI\MLProject\modelling.py
-
 import pandas as pd
 import joblib
 import mlflow
@@ -9,16 +7,15 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
-import os
-import shutil
+# import os 
+# import shutil 
 
 # ===============================================================
 # 🚀 MLflow Setup
 # ===============================================================
-# PENTING: Hapus/Komentari URI lokal Windows. MLflow akan default ke file:./mlruns
-# di folder yang sama (MLProject), yang akan dicatat oleh Actions.
-# mlflow.set_tracking_uri("file:///C:/Users/indah/OneDrive/Desktop/SMSML_MARGOHAN/mlruns")
-mlflow.set_experiment("MARGOHAN_CI_EXPERIMENT") # Ganti nama agar berbeda dari yang lokal
+
+# Kita tetap set experiment, tapi MLflow akan otomatis menggunakan Parent Run ID
+mlflow.set_experiment("MARGOHAN_CI_EXPERIMENT")
 
 # ===============================================================
 # 📥 Load Dataset
@@ -30,7 +27,7 @@ df = pd.read_csv(DATASET_PATH)
 print(f"✅ Dataset berhasil dimuat: {df.shape[0]} baris, {df.shape[1]} kolom")
 
 # ===============================================================
-# 🧹 Data Cleaning & Encoding (Sama seperti sebelumnya, diasumsikan sudah benar)
+# 🧹 Data Cleaning & Encoding
 # ===============================================================
 df.fillna(0, inplace=True)
 df = pd.get_dummies(df, drop_first=True)
@@ -51,7 +48,7 @@ X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
 # ===============================================================
-# 🧠 List Model untuk dibandingkan (Sama seperti sebelumnya)
+# 🧠 List Model untuk dibandingkan
 # ===============================================================
 models = {
     "RandomForest": RandomForestClassifier(n_estimators=200, random_state=42),
@@ -69,9 +66,8 @@ best_model_name = ""
 # ===============================================================
 for name, model in models.items():
     print(f"\n🚀 Melatih model: {name}")
-    # Perbaikan: MLflow run harus berada di dalam MLProject folder,
-    # tetapi dijalankan dari root (sesuai cara Actions Anda).
-    with mlflow.start_run(run_name=name):
+    
+    with mlflow.start_run(run_name=name, nested=True):
         model.fit(X_train_scaled, y_train)
         y_pred = model.predict(X_test_scaled)
         acc = accuracy_score(y_test, y_pred)
@@ -79,11 +75,10 @@ for name, model in models.items():
         # Log ke MLflow
         mlflow.log_param("model_name", name)
         mlflow.log_metric("accuracy", acc)
-        # Log model ke MLflow Tracking Server
+        # Log model (Child Run)
         mlflow.sklearn.log_model(model, f"model_{name}")
 
         print(f"✅ Akurasi {name}: {acc:.4f}")
-        # print(classification_report(y_test, y_pred)) # Opsional
 
         results[name] = acc
         if acc > best_acc:
@@ -96,5 +91,9 @@ for name, model in models.items():
 # ===============================================================
 # Path sementara untuk model terbaik
 MODEL_OUTPUT_PATH = "model_best.pkl"
+# Simpan model terbaik ke dalam file .pkl
 joblib.dump(best_model, MODEL_OUTPUT_PATH)
 print(f"\n🏆 Model terbaik ({best_model_name}) disimpan sebagai {MODEL_OUTPUT_PATH} dengan akurasi: {best_acc:.4f}")
+
+if best_model:
+    mlflow.sklearn.log_model(best_model, "best_model_ci_artifact")
