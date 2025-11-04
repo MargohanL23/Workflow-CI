@@ -1,0 +1,33 @@
+name: MLflow CI - MARGOHAN
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup Conda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        activate-environment: margohan_env
+        environment-file: MLProject/conda.yaml
+        python-version: 3.10
+        auto-activate-base: false
+
+    - name: Install dependencies
+      run: |
+        conda activate margohan_env
+        pip install -r requirements.txt || echo "No requirements.txt found"
+
+    - name: Run MLflow Project
+      run: |
+        cd MLProject
+        mlflow run . --env-manager=local
