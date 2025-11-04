@@ -7,13 +7,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
-# import os 
-# import shutil 
+# Tidak perlu import os, shutil
 
 # ===============================================================
 # 📥 Load Dataset
 # ===============================================================
-# Pastikan jalur dataset benar relatif terhadap MLProject
 DATASET_PATH = "dataset_preprocessing/dataset.csv"
 print(f"📥 Memuat dataset dari: {DATASET_PATH}")
 df = pd.read_csv(DATASET_PATH)
@@ -29,7 +27,6 @@ print("✅ Kolom kategorikal telah diubah menjadi numerik.")
 # ===============================================================
 # ✂️ Split Data
 # ===============================================================
-# Penyesuaian pengecekan kolom target
 target_col = 'Risk_good' if 'Risk_good' in df.columns else 'Risk'
 X = df.drop(columns=[target_col])
 y = df[target_col]
@@ -65,10 +62,9 @@ for name, model in models.items():
         y_pred = model.predict(X_test_scaled)
         acc = accuracy_score(y_test, y_pred)
 
-        # Log ke MLflow
+        # Log ke MLflow (Child Run)
         mlflow.log_param("model_name", name)
         mlflow.log_metric("accuracy", acc)
-        # Log model (Child Run)
         mlflow.sklearn.log_model(model, f"model_{name}")
 
         print(f"✅ Akurasi {name}: {acc:.4f}")
@@ -82,11 +78,11 @@ for name, model in models.items():
 # ===============================================================
 # 💾 Simpan Model Terbaik dan Artefak
 # ===============================================================
-# Path sementara untuk model terbaik
 MODEL_OUTPUT_PATH = "model_best.pkl"
-# Simpan model terbaik ke dalam file .pkl
 joblib.dump(best_model, MODEL_OUTPUT_PATH)
 print(f"\n🏆 Model terbaik ({best_model_name}) disimpan sebagai {MODEL_OUTPUT_PATH} dengan akurasi: {best_acc:.4f}")
 
 if best_model:
+    # PENTING: Log model terbaik ke Parent Run (Run ID yang dibuat oleh mlflow run .)
+    # Agar bisa diakses oleh mlflow build-docker
     mlflow.sklearn.log_model(best_model, "best_model_ci_artifact")
