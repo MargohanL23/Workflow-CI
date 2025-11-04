@@ -1,15 +1,36 @@
-name: margohan_env
-channels:
-  - defaults
-dependencies:
-  - python=3.10
-  - pip
-  - pip:
-      - mlflow==2.19.0
-      - scikit-learn
-      - pandas
-      - numpy
-      - joblib
-      - cloudpickle
-      - pyyaml
-      - sqlalchemy
+name: MLflow CI - MARGOHAN
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install mlflow==2.19.0 scikit-learn pandas numpy joblib cloudpickle pyyaml sqlalchemy
+
+    - name: Run MLflow Project
+      run: |
+        cd MLProject
+        mlflow run . --env-manager=local
+
+    - name: Upload Model Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: trained-model
+        path: MLProject/model.pkl
