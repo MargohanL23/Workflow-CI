@@ -8,7 +8,12 @@ on:
 
 jobs:
   build:
+    
     runs-on: ubuntu-latest
+    
+    # Environment variables untuk MLflow (opsional, tapi disarankan)
+    # env:
+    #   MLFLOW_TRACKING_URI: file:./MLProject/mlruns 
 
     steps:
     # -----------------------------
@@ -18,35 +23,45 @@ jobs:
       uses: actions/checkout@v3
 
     # -----------------------------
-    # Setup Python (tanpa conda)
+    # Setup Conda (untuk menjalankan MLflow Project)
     # -----------------------------
-    - name: Setup Python
-      uses: actions/setup-python@v5
+    - name: Setup Conda Environment
+      uses: conda-incubator/setup-miniconda@v3
       with:
-        python-version: '3.10'
+        activate-environment: margohan_env # Nama environment dari conda.yaml
+        environment-file: MLProject/conda.yaml # Jalur ke conda.yaml
+        python-version: 3.10
+        auto-activate-base: false
 
     # -----------------------------
     # Install dependencies
     # -----------------------------
-    - name: Install dependencies
+    - name: Install MLflow CLI (jika belum ada)
+      shell: bash
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install mlflow==2.19.0 scikit-learn pandas numpy joblib cloudpickle pyyaml sqlalchemy
+        # Pastikan mlflow terinstal di environment yang aktif
+        conda install -c conda-forge mlflow -y 
+        # Atau jika menggunakan pip (tapi conda lebih disarankan untuk MLflow Project)
+        # pip install mlflow==2.19.0
 
     # -----------------------------
-    # Jalankan MLflow Project
+    # Menjalankan MLflow Project
     # -----------------------------
     - name: Run MLflow Project
+      shell: bash
       run: |
         cd MLProject
-        mlflow run . --env-manager=local
+        # MLflow akan membaca MLProject, menggunakan conda.yaml, dan menjalankan modelling.py
+        # Parameter --env-manager=conda adalah cara untuk ini
+        mlflow run . --env-manager=conda 
 
     # -----------------------------
-    # Upload model artifact
+    # Upload model artifact (SKILLED: Menyimpan artefak ke repositori/Actions)
     # -----------------------------
     - name: Upload Model Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: trained-model
-        path: MLProject/model.pkl
+        name: trained-model-${{ github.run_id }}
+
+        path: MLProject/model_best.pkl
+        retention-days: 7
