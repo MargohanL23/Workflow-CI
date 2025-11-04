@@ -10,6 +10,7 @@ on:
 
 jobs:
   build:
+    # Menggunakan runner Ubuntu standar
     runs-on: ubuntu-latest
 
     steps:
@@ -33,62 +34,22 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        # Pastikan requirements.txt sudah bebas dari pywin32
         pip install -r requirements.txt
-        # Pastikan docker terinstall untuk mlflow build-docker
-        pip install mlflow==2.19.0 scikit-learn pandas docker
+        # Tambahkan MLflow eksplisit, meskipun ada di requirements, untuk jaga-jaga
+        pip install mlflow==2.19.0 scikit-learn pandas
 
     # -----------------------------
-    # Jalankan MLflow Project (Menangkap RUN_ID)
+    # Jalankan MLflow Project
     # -----------------------------
-    - name: Run MLflow Project and Capture Run ID
-      id: run_project
+    - name: Run MLflow Project
       run: |
         cd MLProject
-        # Menjalankan MLflow Project dan menangkap Run ID dari output
-        RUN_ID=$(mlflow run . --env-manager=local 2>&1 | grep "Running command" | awk '{print $NF}')
-        echo "MLFLOW_RUN_ID=$RUN_ID" >> $GITHUB_ENV
-        echo "Telah melatih model dalam run ID: $RUN_ID"
-
-    # =================================================================
-    # 🚀 ADVANCE (4 PTS): DOCKER BUILD DAN PUSH
-    # =================================================================
-    
-    # -----------------------------
-    # Docker Hub Login (Menggunakan Action)
-    # -----------------------------
-    - name: Docker Login
-      uses: docker/login-action@v3
-      with:
-        registry: docker.io
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-        
-    # -----------------------------
-    # Build Docker Image menggunakan MLflow dan Push (Solusi Final)
-    # -----------------------------
-    - name: Build and Push Docker Image
-      # Menyuntikkan secrets ke environment variables untuk keandalan ekstra
-      env:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      run: |
-        # Menggunakan Run ID yang ditangkap dari langkah sebelumnya
-        MODEL_URI="runs:/${{ env.MLFLOW_RUN_ID }}/best_model_ci_artifact"
-        
-        # Nama Image: ${{ env.DOCKER_USERNAME }} akan menjadi "gohandal1"
-        IMAGE_NAME="${{ env.DOCKER_USERNAME }}/margohan-credit-model"
-        IMAGE_TAG="${{ github.sha }}" # Menggunakan SHA Commit sebagai tag unik
-        
-        echo "Building Docker image ${IMAGE_NAME}:${IMAGE_TAG} dari Model URI: ${MODEL_URI}"
-        
-        # Build Docker Image menggunakan fungsi MLflow
-        mlflow build-docker --model-uri ${MODEL_URI} --name ${IMAGE_NAME} --tag ${IMAGE_TAG}
-        
-        # Push Image ke Docker Hub
-        docker push ${IMAGE_NAME}:${IMAGE_TAG}
-      shell: bash
+        # Gunakan --env-manager=local karena environment sudah dibuat di langkah sebelumnya
+        mlflow run . --env-manager=local
 
     # -----------------------------
-    # Upload model artifact (Skilled Step - Model PKL)
+    # Upload model artifact
     # -----------------------------
     - name: Upload Model Artifact
       uses: actions/upload-artifact@v4
