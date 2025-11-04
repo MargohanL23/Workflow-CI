@@ -1,15 +1,16 @@
+# MLProject/conda.yaml
 name: margohan_env
 channels:
   - defaults
+  - conda-forge 
 dependencies:
   - python=3.10
-  - scikit-learn
-  - pandas
+  - mlflow=2.19.0
+  # Dependensi utama
+  - scikit-learn=1.2.2 
+  - pandas=2.2.0
   - numpy
-  - pip
-  - pip:
-      - mlflow==2.19.0
-      - joblib
-      - cloudpickle
-      - pyyaml
-      - sqlalchemy
+  - joblib
+  - cloudpickle
+  - pyyaml
+  - sqlalchemy
