@@ -1,3 +1,19 @@
+name: MLflow CI - MARGOHAN
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
     - name: Setup Conda
       uses: conda-incubator/setup-miniconda@v3
       with:
@@ -13,3 +29,14 @@
         conda activate margohan_env
         pip install --upgrade pip setuptools wheel
         pip install -r requirements.txt || echo "No requirements.txt found"
+
+    - name: Run MLflow Project
+      run: |
+        cd MLProject
+        mlflow run . --env-manager=local
+
+    - name: Upload Model Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: trained-model
+        path: MLProject/model.pkl
