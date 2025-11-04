@@ -51,11 +51,11 @@ jobs:
         echo "Telah melatih model dalam run ID: $RUN_ID"
 
     # =================================================================
-    # 🚀 ADVANCE (4 PTS): DOCKER BUILD DAN PUSH
+    #  DOCKER BUILD DAN PUSH
     # =================================================================
     
     # -----------------------------
-    # Docker Hub Login (Step 1)
+    # Docker Hub Login 
     # -----------------------------
     - name: Docker Login
       uses: docker/login-action@v3
@@ -66,7 +66,7 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
         
     # -----------------------------
-    # Build Docker Image menggunakan MLflow dan Push (Step 2)
+    # Build Docker Image menggunakan MLflow dan Push 
     # -----------------------------
     - name: Build and Push Docker Image
       run: |
@@ -87,7 +87,7 @@ jobs:
       shell: bash
 
     # -----------------------------
-    # Upload model artifact (Skilled Step - Model PKL)
+    # Upload model artifact 
     # -----------------------------
     - name: Upload Model Artifact
       uses: actions/upload-artifact@v4
